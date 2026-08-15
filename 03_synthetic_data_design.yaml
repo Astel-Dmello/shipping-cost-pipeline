@@ -1,0 +1,99 @@
+generation:
+  n_rows: 8000
+  random_seed: 42
+  rationale: "large enough for stable 30-fold CV + 80/20 split, small enough to run in seconds; paper's real 1.88M rows is a demo-runtime concern, not reproduced here"
+
+columns:
+  - name: loading_latitude
+    type: numeric_continuous
+    generation: "uniform, South Korea bounding box ~[33.0, 38.6]"
+  - name: loading_longitude
+    type: numeric_continuous
+    generation: "uniform, South Korea bounding box ~[125.0, 130.0]"
+  - name: unloading_latitude
+    type: numeric_continuous
+    generation: "uniform, South Korea bounding box ~[33.0, 38.6]"
+  - name: unloading_longitude
+    type: numeric_continuous
+    generation: "uniform, South Korea bounding box ~[125.0, 130.0]"
+  - name: linear_distance
+    type: derived
+    generation: "haversine(loading_lat/lon, unloading_lat/lon), km"
+  - name: actual_distance
+    type: derived
+    generation: "linear_distance * lognormal road-circuity factor, mean ~1.25, so road distance >= straight-line distance"
+  - name: freight_weight
+    type: numeric_continuous
+    generation: "lognormal, mean~3000kg, right-skewed (freight weights are not symmetric)"
+  - name: vehicle_tonnage
+    type: numeric_discrete
+    generation: "categorical-ish discrete set {1,2.5,5,8,11,15,25} tons, weighted toward smaller trucks"
+  - name: vehicle_type
+    type: categorical
+    generation: "5 levels (e.g. box, wing-body, flatbed, refrigerated, tanker), roughly equal with box/wing-body more common"
+  - name: type_of_loading
+    type: categorical
+    generation: "4 levels (e.g. forklift, hand, crane, none), realistic skew toward forklift/hand"
+  - name: type_of_unloading
+    type: categorical
+    generation: "same 4 levels as type_of_loading, independent draw"
+  - name: standard_fare
+    type: numeric_continuous
+    generation: "lognormal reference-fare figure correlated with linear_distance and vehicle_tonnage (it's a benchmark fare, so should already partly track the real cost drivers)"
+  - name: loading_datetime
+    type: datetime
+    generation: "uniform random timestamp within Apr-Sep 2020; month/day/day_of_week/time all derived from this single timestamp so they stay consistent"
+  - name: unloading_datetime
+    type: derived
+    generation: "loading_datetime + lognormal transit duration (hours), scaled with actual_distance"
+  - name: loading_location
+    type: categorical
+    generation: "8-12 Korean province-level categories, non-uniform frequency"
+  - name: unloading_location
+    type: categorical
+    generation: "same category set as loading_location, independent draw"
+  - name: company_code
+    type: categorical
+    generation: "~30 categories, Zipf-like frequency (few large brokers, long tail)"
+  - name: precipitation
+    type: numeric_continuous
+    generation: "zero-inflated: ~70% zero, remainder lognormal mm, joined by loading_location + loading_datetime month (seasonal: higher in summer months)"
+  - name: payment_method / shipping_cost_payment / loading_classification / dispatch_status / share_state / shipper_number / registrant_key / primary_key
+    type: categorical
+    generation: "low-cardinality categoricals / IDs, generated independently with plausible level counts; not used in target formula (paper doesn't report them as correlated with cost)"
+
+target_construction:
+  base_formula: "shipping_cost = base + w1*linear_distance + w2*actual_distance + w3*freight_weight + w4*vehicle_tonnage + w5*I(type_of_unloading) + w6*standard_fare + noise"
+  feature_weights:
+    - variable: linear_distance
+      relative_importance: "dominant, >50% of explained signal per SHAP finding"
+      direction: positive
+    - variable: actual_distance
+      relative_importance: "second, correlated with linear_distance by construction (~0.7 vs ~0.73 in paper) so weight is smaller since much of its signal overlaps"
+      direction: positive
+    - variable: freight_weight
+      relative_importance: "moderate (paper r~0.27)"
+      direction: positive
+    - variable: vehicle_tonnage
+      relative_importance: "moderate (paper r~0.27)"
+      direction: positive
+    - variable: type_of_unloading
+      relative_importance: "moderate (paper r~0.25)"
+      direction: positive
+    - variable: standard_fare
+      relative_importance: "moderate (paper r~0.20)"
+      direction: positive
+    - variable: precipitation
+      relative_importance: "~0 - explicitly excluded from target formula, since the paper found no valid contribution from precipitation"
+      direction: none
+  noise: "Gaussian noise scaled to ~25-30% of target std dev, tuned so MLR lands around R2~0.6-0.7 and boosting models land higher (~0.75-0.85), matching the paper's relative ordering"
+
+missingness_and_outliers:
+  - column: "freight_weight, standard_fare, actual_distance"
+    missing_rate: "~3-5% per column, missing-completely-at-random, so listwise-deletion vs mean-imputation preprocessing has real rows to differ on"
+    outlier_injection: "~1% of rows given a 5-10x multiplier on freight_weight or shipping_cost to give the IQR outlier-removal step real work"
+
+fidelity_notes:
+  - "precipitation is intentionally given ~0 relationship to target, mirroring the paper's null finding, rather than being fabricated as predictive"
+  - "actual_distance is generated as a scaled-up version of linear_distance rather than independently, since the two are highly correlated in the paper (both ~0.7-0.73) and independent generation would break that relationship"
+  - "absolute R2 values will not match the paper's exactly; only the ranking and rough gap between model families is targeted"

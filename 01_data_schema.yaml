@@ -1,0 +1,274 @@
+dataset:
+  domain: "Freight brokerage platform shipping cost records, South Korea, Apr-Sep 2020"
+  unit_of_observation: "one freight brokerage transaction (a shipment order)"
+  raw_row_count: 1885033
+  raw_column_count: 78
+  time_span: "April 2020 - September 2020 (6 months)"
+
+target_variable:
+  name: "shipping_cost"
+  description: "the fee charged for a freight brokerage transaction (Korean Won)"
+
+raw_variables:
+  - name: cargo_owner_name
+    description: "personal info of cargo owner"
+    dtype: text
+    kept_or_dropped: dropped
+    drop_reason: "personal information, irrelevant to prediction"
+  - name: vehicle_number
+    description: "personal/vehicle identifying info"
+    dtype: text
+    kept_or_dropped: dropped
+    drop_reason: "personal information"
+  - name: phone_number
+    description: "personal contact info"
+    dtype: text
+    kept_or_dropped: dropped
+    drop_reason: "personal information"
+  - name: load_unload_name_address
+    description: "loading/unloading name and address text"
+    dtype: text
+    kept_or_dropped: dropped
+    drop_reason: ">50% missing"
+  - name: summary
+    description: "free text order summary"
+    dtype: text
+    kept_or_dropped: dropped
+    drop_reason: ">50% missing"
+  - name: order_number
+    description: "order id text field"
+    dtype: categorical
+    kept_or_dropped: dropped
+    drop_reason: ">50% missing (one of 20 factors removed for >50% missingness)"
+  - name: loading_latitude
+    description: "latitude of pickup location"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: loading_longitude
+    description: "longitude of pickup location"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: unloading_latitude
+    description: "latitude of drop-off location"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: unloading_longitude
+    description: "longitude of drop-off location"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: actual_distance
+    description: "actual road distance travelled"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: vehicle_tonnage
+    description: "capacity/weight class of vehicle"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: vehicle_type
+    description: "type/category of vehicle"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: freight_weight
+    description: "weight of the cargo"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: type_of_loading
+    description: "loading method/category"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: type_of_unloading
+    description: "unloading method/category"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: standard_fare
+    description: "a reference/standard fare figure for the shipment"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: loading_datetime
+    description: "date/time cargo was loaded"
+    dtype: datetime
+    kept_or_dropped: kept
+  - name: unloading_datetime
+    description: "date/time cargo was unloaded"
+    dtype: datetime
+    kept_or_dropped: kept
+  - name: loading_location
+    description: "categorical region/area of pickup"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: unloading_location
+    description: "categorical region/area of drop-off"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: company_code
+    description: "brokerage company identifier"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: sort_sequence
+    description: "ordering/sequence field in the platform"
+    dtype: numeric_discrete
+    kept_or_dropped: kept
+  - name: primary_key
+    description: "row identifier"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: registrant_key
+    description: "identifier of who registered the order"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: shipper_number
+    description: "shipper identifier"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: payment_method
+    description: "how the shipping cost is paid"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: shipping_cost_payment
+    description: "payment status/classification field for shipping cost"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: loading_classification
+    description: "classification code for loading"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: dispatch_status
+    description: "status of the dispatch"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: share_state
+    description: "sharing/visibility state field"
+    dtype: categorical
+    kept_or_dropped: kept
+  - name: total_cost
+    description: "a total-cost figure distinct from shipping_cost"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: arranging_fee
+    description: "brokerage/arranging commission fee"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: other_62_columns
+    description: "remaining ~44 of the original 78 columns are not individually named in the text (beyond the 20 dropped for missingness and the ones listed above); treat as present but out of scope for modeling"
+    dtype: unspecified
+    kept_or_dropped: dropped
+    drop_reason: "not named as a significant/selected factor anywhere in the paper"
+
+engineered_variables:
+  - name: linear_distance
+    derived_from: [loading_latitude, loading_longitude, unloading_latitude, unloading_longitude]
+    logic: "haversine (great-circle) distance between pickup and drop-off coordinates"
+  - name: loading_month
+    derived_from: [loading_datetime]
+    logic: "calendar month extracted from loading date"
+  - name: loading_day
+    derived_from: [loading_datetime]
+    logic: "calendar day-of-month extracted from loading date"
+  - name: loading_day_of_week
+    derived_from: [loading_datetime]
+    logic: "day of week extracted from loading date"
+  - name: loading_time
+    derived_from: [loading_datetime]
+    logic: "time-of-day extracted from loading timestamp"
+  - name: unloading_month
+    derived_from: [unloading_datetime]
+    logic: "calendar month extracted from unloading date"
+  - name: unloading_day
+    derived_from: [unloading_datetime]
+    logic: "calendar day-of-month extracted from unloading date"
+  - name: unloading_day_of_week
+    derived_from: [unloading_datetime]
+    logic: "day of week extracted from unloading date"
+  - name: unloading_time
+    derived_from: [unloading_datetime]
+    logic: "time-of-day extracted from unloading timestamp"
+  - name: precipitation
+    derived_from: [loading_location, unloading_location, loading_datetime, unloading_datetime]
+    logic: "joined from Korea Meteorological Administration precipitation records, matched by loading/unloading location and date"
+  - name: phase_difference
+    derived_from: [loading_datetime, unloading_datetime]
+    logic: "paper names this as a significant factor (listwise-deletion correlation table) but does not define its computation explicitly; treat as time elapsed between loading and unloading as the most plausible reading"
+
+preprocessing_steps:
+  - step: "outlier removal"
+    method: "interquartile range (IQR)"
+    detail: "applied only to continuous variables"
+  - step: "drop high-missingness columns"
+    method: "threshold drop"
+    detail: "20 factors with >50% missing values removed before missing-value treatment (e.g. load/unload name address, summary, order number)"
+  - step: "missing data handling"
+    variants:
+      - name: listwise_deletion
+        resulting_rows: 1353543
+        resulting_columns: 73
+      - name: mean_imputation
+        resulting_rows: 1442036
+        resulting_columns: 73
+  - step: "normalization"
+    method: "min-max normalization"
+    detail: "all continuous variables scaled to [0, 1] before modeling"
+
+variable_selection:
+  - method: "Pearson correlation, threshold |r| >= 0.1"
+    applies_to_variant: "listwise_deletion"
+    results:
+      - variable: linear_distance
+        value: 0.7322
+      - variable: actual_distance
+        value: 0.7062
+      - variable: freight_weight
+        value: 0.2760
+      - variable: vehicle_tonnage
+        value: 0.2700
+      - variable: type_of_unloading
+        value: 0.2535
+      - variable: standard_fare
+        value: 0.2015
+      - variable: unloading_time
+        value: -0.1943
+    selected_variables: [linear_distance, actual_distance, freight_weight, vehicle_tonnage, type_of_unloading, standard_fare, unloading_time]
+  - method: "Pearson correlation, threshold |r| >= 0.1"
+    applies_to_variant: "mean_imputation"
+    results:
+      - variable: linear_distance
+        value: 0.7258
+      - variable: actual_distance
+        value: 0.7035
+      - variable: freight_weight
+        value: 0.2582
+      - variable: vehicle_tonnage
+        value: 0.2372
+      - variable: type_of_unloading
+        value: 0.2323
+      - variable: standard_fare
+        value: -0.1999
+      - variable: unloading_time
+        value: 0.1562
+      - variable: loading_time
+        value: 0.1023
+    selected_variables: [linear_distance, actual_distance, freight_weight, vehicle_tonnage, type_of_unloading, standard_fare, unloading_time, loading_time]
+  - method: "stepwise selection"
+    applies_to_variant: "listwise_deletion"
+    results: []
+    selected_variables: [loading_month, loading_day, loading_time, loading_day_of_week, loading_location, loading_latitude, loading_longitude, sort_sequence, company_code, unloading_month, unloading_day, unloading_time, unloading_day_of_week, unloading_location, unloading_latitude, unloading_longitude, linear_distance, actual_distance, vehicle_tonnage, vehicle_type, freight_weight, type_of_loading, type_of_unloading, standard_fare, primary_key, serial_number, shipping_cost_payment, payment_method, loading_classification, dispatch_status, share_state, shipper_number, registrant_key, total_cost, arranging_fee]
+    note: "35 variables total for listwise deletion; mean imputation variant selects the same 33 minus total_cost and arranging_fee"
+  - method: "variance inflation factor (VIF), threshold >= 10 flagged as multicollinear and removed before final MLR fit"
+    applies_to_variant: "both, applied after correlation analysis and after stepwise method separately"
+    results:
+      - variable: actual_distance
+        value: 45.118
+      - variable: vehicle_tonnage
+        value: 12.671
+      - variable: type_of_unloading
+        value: 10.284
+      - variable: loading_longitude
+        value: 19820.792
+      - variable: unloading_day_of_week
+        value: 10.527
+    note: "full VIF table has ~20 entries per branch; see paper Table 4 for complete list. After removing flagged variables: correlation-analysis branches end with 5 factors each; stepwise+listwise ends with 16 factors (19 removed); stepwise+mean-imputation ends with 15 factors (18 removed)."
+
+open_questions:
+  - "Exact list of the ~44 unnamed remaining raw columns (paper states 78 total, only ~30 named)"
+  - "Precise definition of 'phase difference' derivation"
+  - "Exact IQR multiplier (e.g. 1.5x) used for outlier removal — not stated"
+  - "Exact final 5/16/15 variable names post-VIF-removal per branch beyond what's named in Table 4"

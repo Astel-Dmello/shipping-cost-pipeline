@@ -1,0 +1,15 @@
+[project]
+name = "shipping-cost-pipeline"
+version = "0.1.0"
+description = "Synthetic-data reproduction of Jang, Chang & Kim (2023) freight shipping-cost prediction pipeline"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
