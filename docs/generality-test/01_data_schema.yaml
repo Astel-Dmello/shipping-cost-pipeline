@@ -1,0 +1,78 @@
+dataset:
+  domain: "Residential real estate sales, Ames, Iowa, USA"
+  unit_of_observation: "one house sale record"
+  raw_row_count: 2930
+  raw_column_count: 82
+  time_span: "not stated (Ames Housing dataset, public on Kaggle)"
+
+target_variable:
+  name: "sale_price"
+  description: "the sale price of the house"
+
+raw_variables:
+  - name: overall_qual
+    description: "overall material/finish quality rating"
+    dtype: numeric_discrete
+    kept_or_dropped: kept
+  - name: gr_liv_area
+    description: "above-ground living area square footage"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: garage_cars
+    description: "garage capacity in cars"
+    dtype: numeric_discrete
+    kept_or_dropped: kept
+  - name: total_bsmt_sf
+    description: "total basement square footage"
+    dtype: numeric_continuous
+    kept_or_dropped: kept
+  - name: other_78_columns
+    description: "remaining ~78 of 82 Ames Housing columns not individually named in the paper text (it only names the top-4 feature-importance variables explicitly); treat as present but out of scope without consulting the dataset directly"
+    dtype: unspecified
+    kept_or_dropped: unspecified
+    drop_reason: "not named in the paper; the paper does not publish a full variable table the way the freight paper did"
+
+engineered_variables: []
+# NOTE (generality finding): this paper does NOT describe any engineered/derived
+# variables the way the freight paper did (no haversine distance, no date decomposition).
+# It also does not publish a preprocessing detail table -- Section 3.6 "Data
+# Preprocessing" describes preprocessing categories in the ABSTRACT (validity,
+# cleaning, denoising, outliers) but never states which specific technique was
+# applied to which specific column, unlike the freight paper's explicit IQR-outlier /
+# listwise-deletion-vs-mean-imputation comparison. This is a real difference in how
+# much a paper discloses, and Phase 1 has to represent that gap honestly rather than
+# inventing specifics to fill the template.
+
+preprocessing_steps:
+  - step: "data cleaning (missing values, duplicates)"
+    method: "unspecified"
+    detail: "paper describes this as a category of preprocessing performed (Section 3.6) but does not state which specific technique (e.g. drop vs impute) was used on which column"
+  - step: "denoising"
+    method: "unspecified"
+    detail: "paper names binning/regression/clustering as possible denoising techniques in general ML methodology discussion, but doesn't confirm which (if any) was applied to this dataset specifically"
+  - step: "outlier handling"
+    method: "unspecified"
+    detail: "named as a preprocessing category performed, no specific method or threshold given"
+
+variable_selection:
+  - method: "Random Forest-based feature selection (hypothesis-integration approach, citing Rogers & Gunn)"
+    applies_to_variant: "single dataset, no preprocessing-variant comparison (unlike the freight paper's 2x2 branch structure)"
+    results: []
+    selected_variables: []
+    note: "paper states feature selection was performed via random forest but does not publish the full selected-variable list or their scores -- only reports the FINAL feature-importance ranking (via XGBoost, not RF) in Figure 4: overall_qual, gr_liv_area, garage_cars, total_bsmt_sf as the top 4, with no numeric importance values given, unlike the freight paper's explicit Pearson-r / VIF tables"
+
+open_questions:
+  - "Full 82-column variable list (paper doesn't publish one; would need to pull the Kaggle Ames Housing dataset directly)"
+  - "Exact preprocessing techniques applied per column (paper describes preprocessing categories, not techniques used)"
+  - "Random-forest feature-selection scores/thresholds (method named, results not published)"
+  - "Train/test split ratio (not explicitly stated in Section 3, unlike freight paper's clear 80/20)"
+
+generality_finding: >
+  This paper discloses far less preprocessing/variable-selection detail than the freight
+  paper the skill was originally built against. Phase 1's schema still applies (dataset
+  facts, target, kept variables, open_questions), but for a paper like this the
+  open_questions list ends up carrying most of the weight, and downstream synthetic-data
+  design would need to lean more heavily on the dataset's actual public schema (Kaggle
+  Ames Housing) than on paper-stated preprocessing specifics, since there mostly aren't
+  any. This is a legitimate generalization the skill's Phase 1 instructions should
+  anticipate -- not every tabular paper is as procedurally detailed as the freight one.

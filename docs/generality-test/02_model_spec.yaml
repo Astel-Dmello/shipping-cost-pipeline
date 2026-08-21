@@ -1,0 +1,94 @@
+models:
+  - name: "Linear Regression (LR)"
+    family: linear
+    library_target: "sklearn.linear_model.LinearRegression"
+    hyperparameters:
+      untuned: {copy_X: true, fit_intercept: true}
+      tuned_via_gridsearchcv: {copy_X: true, fit_intercept: true}
+      note: "paper reports tuning made no difference for this model"
+
+  - name: "Multi-Layer Perceptron (MLP)"
+    family: neural_net
+    library_target: "sklearn.neural_network.MLPRegressor (paper uses sklearn's MLP, NOT Keras -- different from the freight paper's TensorFlow DNN)"
+    hyperparameters:
+      untuned: {max_iter: 500}
+      tuned_via_gridsearchcv: {random_state: 1, max_iter: 500, activation: tanh, solver: lbfgs, alpha: 0.00005}
+
+  - name: "Random Forest Regression"
+    family: tree_ensemble
+    library_target: "sklearn.ensemble.RandomForestRegressor"
+    hyperparameters:
+      untuned: {n_estimators: 200, max_depth: 8, max_features: 9}
+      tuned_via_gridsearchcv: {n_estimators: 300, max_depth: 10, max_features: 9}
+
+  - name: "Support Vector Regressor (SVR)"
+    family: kernel_svm
+    library_target: "sklearn.svm.SVR"
+    hyperparameters:
+      untuned: {}
+      tuned_via_gridsearchcv: {C: 5, gamma: 0.1, verbose: 2}
+      note: "paper flags SVR tuning as possibly mis-specified -- CV score DROPS after tuning (50.28 -> 0.87), an anomaly the paper itself calls out rather than hides"
+
+  - name: "XGBoost Regression"
+    family: gradient_boosting
+    library_target: "xgboost.XGBRegressor"
+    hyperparameters:
+      untuned: {}
+      tuned_via_gridsearchcv: {objective: "reg:squarederror", gamma: 0.001, max_depth: 10, min_child_weight: 50, subsample: 1}
+      note: "winning model per the paper -- named the 'Golden Model'"
+
+validation_protocol:
+  train_test_split: "not explicitly stated as a ratio in Section 3 (unlike freight paper's clear 80/20)"
+  resampling:
+    method: "cross-validation (CV score reported), exact fold count not stated"
+    folds: "unspecified"
+    purpose: "generalization check, reported as a single 'CV Score' column per model -- NOT used to build a prediction interval the way the freight paper's 30-fold scheme was"
+  interval_method:
+    type: "none -- this paper does not construct a confidence/prediction interval at all"
+    computation: "not applicable"
+  hyperparameter_tuning:
+    method: "GridSearchCV"
+    note: "the freight paper does not tune hyperparameters at all ('basic form' language); this paper's central contribution IS the tuning comparison (untuned vs. GridSearchCV-tuned), a structurally different experimental design"
+
+metrics:
+  primary: "R-squared, but ALSO Model Score, Adjusted R-squared, MSE, RMSE, MAE, and CV Score -- a richer metric set than the freight paper's single R-squared"
+  reported_results_table_untuned:
+    - {model: "Linear Regression", model_score: 0.935, r2: 0.910, adj_r2: 0.899, mse: 0.017, rmse: 0.130, mae: 0.075, cv_score: 87.530}
+    - {model: "MLP", model_score: 0.703, r2: 0.640, adj_r2: 0.607, mse: 0.066, rmse: 0.257, mae: 0.176, cv_score: 4.000}
+    - {model: "Random Forest", model_score: 0.880, r2: 0.860, adj_r2: 0.850, mse: 0.025, rmse: 0.159, mae: 0.112, cv_score: 82.320}
+    - {model: "SVR", model_score: 0.489, r2: 0.570, adj_r2: 0.526, mse: 0.079, rmse: 0.282, mae: 0.211, cv_score: 50.280}
+    - {model: "XGBoost", model_score: 0.997, r2: 0.920, adj_r2: 0.911, mse: 0.015, rmse: 0.112, mae: 0.084, cv_score: 88.940}
+  reported_results_table_gridsearchcv_tuned:
+    - {model: "Linear Regression", model_score: 0.935, r2: 0.910, adj_r2: 0.899, mse: 0.017, rmse: 0.130, mae: 0.075, cv_score: 87.530}
+    - {model: "MLP", model_score: 0.740, r2: 0.790, adj_r2: 0.772, mse: 0.038, rmse: 0.195, mae: 0.148, cv_score: 72.410}
+    - {model: "Random Forest", model_score: 0.923, r2: 0.890, adj_r2: 0.874, mse: 0.021, rmse: 0.145, mae: 0.101, cv_score: 84.290}
+    - {model: "SVR", model_score: 0.946, r2: 0.020, adj_r2: -0.081, mse: 0.181, rmse: 0.425, mae: 0.332, cv_score: 0.870}
+    - {model: "XGBoost", model_score: 0.983, r2: 0.930, adj_r2: 0.920, mse: 0.001, rmse: 0.116, mae: 0.084, cv_score: 90.000}
+
+feature_importance:
+  method: "XGBoost's built-in feature importance (NOT SHAP, unlike the freight paper)"
+  applied_to_model: "XGBoost (tuned)"
+  headline_findings:
+    - "overall_qual (overall material/finish quality) is the top contributor"
+    - "gr_liv_area (above-ground living area) is second"
+    - "garage_cars (garage capacity) is third"
+    - "total_bsmt_sf (total basement sq ft) is fourth"
+    - "no numeric importance values published, only a ranked bar chart (Figure 4) -- less quantitatively specific than the freight paper's SHAP percentages"
+
+open_questions:
+  - "Exact CV fold count for the CV Score metric"
+  - "Train/test split ratio"
+  - "GridSearchCV parameter grids searched (only the WINNING parameters are published, not the search space)"
+  - "Numeric feature-importance values (only a ranked chart is given)"
+
+generality_finding: >
+  Phase 2's template still captures the essentials (per-model hyperparameters, metrics,
+  feature importance), but this paper exposed two structural differences the skill's
+  instructions should call out explicitly for future runs: (1) a paper's headline
+  contribution can be hyperparameter TUNING itself (untuned vs. GridSearchCV-tuned), which
+  means "hyperparameters" isn't a single fixed value per model but two full configurations
+  to extract side by side; (2) the metric set and validation protocol vary paper to paper
+  (this one has six metrics and no confidence-interval construction at all, versus the
+  freight paper's single R-squared plus a 30-fold CI) -- Phase 2 needs to be read as "extract
+  whatever protocol this paper actually uses," not "assume the freight paper's k-fold/CI
+  pattern is universal."
