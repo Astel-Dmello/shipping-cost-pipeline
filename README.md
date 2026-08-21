@@ -5,7 +5,7 @@ of Shipping Cost on Freight Brokerage Platform Using Machine Learning* (Sustaina
 built with a custom Claude Code skill I wrote (`paper2code-tabular`) that converts tabular
 ML papers into runnable pipelines.
 
-**[Live demo →](#)** *(update this link after deploying — see DEPLOY.md)*
+**[Live demo →](#)** https://shipping-cost-pipeline-djwdlnjfiwf9arj74urmbn.streamlit.app/
 
 ## What this is
 
