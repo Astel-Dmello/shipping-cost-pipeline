@@ -45,7 +45,3 @@ Once deployed you'll get a URL like `https://<your-app-name>.streamlit.app`. Tha
 better portfolio link than "clone this repo and run it" — it demonstrates the project
 end-to-end with zero setup for whoever's looking at it (e.g. a recruiter or interviewer).
 
-Worth pairing the link with the one-line pitch: *"A Claude Code skill I built that
-converts tabular ML papers into runnable pipelines; here's it applied to a shipping-cost
-prediction paper, validated against both synthetic and real logistics data."* That
-framing is more accurate — and more interesting — than claiming a paper reproduction.
