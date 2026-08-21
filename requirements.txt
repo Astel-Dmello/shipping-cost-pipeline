@@ -7,4 +7,5 @@ lightgbm>=4.0
 scipy>=1.10
 shap>=0.44
 tensorflow-cpu>=2.14
+statsmodels>=0.14
 matplotlib
