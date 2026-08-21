@@ -1,8 +1,7 @@
-__pycache__/
-*.pyc
-.pytest_cache/
-results/
-*.csv
-.venv/
 venv/
-.DS_Store
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+
+data/*.csv

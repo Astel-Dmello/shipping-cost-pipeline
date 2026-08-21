@@ -1,0 +1,17 @@
+model,branch,n_features,r_squared,training_time_s
+MLR,correlation+listwise_deletion,3,0.446,0.0
+XGBoost,correlation+listwise_deletion,5,0.401,0.37
+LightGBM,correlation+listwise_deletion,5,0.438,2.73
+DNN,correlation+listwise_deletion,5,0.411,31.24
+MLR,stepwise+listwise_deletion,14,0.451,0.02
+XGBoost,stepwise+listwise_deletion,15,0.384,0.27
+LightGBM,stepwise+listwise_deletion,15,0.439,0.19
+DNN,stepwise+listwise_deletion,15,0.429,12.76
+MLR,correlation+mean_imputation,3,0.288,0.0
+XGBoost,correlation+mean_imputation,5,0.281,0.25
+LightGBM,correlation+mean_imputation,5,0.289,0.15
+DNN,correlation+mean_imputation,5,0.265,13.24
+MLR,stepwise+mean_imputation,14,0.3,0.02
+XGBoost,stepwise+mean_imputation,15,0.299,0.29
+LightGBM,stepwise+mean_imputation,15,0.286,0.2
+DNN,stepwise+mean_imputation,15,0.283,13.05
