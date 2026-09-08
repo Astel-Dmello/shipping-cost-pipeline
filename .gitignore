@@ -5,3 +5,5 @@ __pycache__/
 .env
 
 data/*.csv
+# CourtTrack is its own repository, nested here only on disk.
+courttrack/
